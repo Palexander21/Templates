@@ -162,7 +162,6 @@ main () {
         esac
     done
 
-    local _longarg
     if [[ "$#" = "0" ]]; then
         menu
     else
