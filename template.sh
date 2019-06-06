@@ -1,4 +1,4 @@
-#! /usr/bin/bash
+#! /usr/bin/env bash
 
 ##################################################################################################
 # Author: Paxton Alexander (With the help of Github and StackOverflow)
@@ -7,27 +7,37 @@
 ##################################################################################################
 
 
+set -o errexit   # abort on nonzero exitstatus
+set -o nounset   # abort on unbound variable
+set -o pipefail  # don't hide errors within pipes
+
 ######################################### Globals ################################################
-__NC='\e[0m'
-__GRAY='\e[0;90m'
-__RED='\e[0;91m'
-__GREEN='\e[0;92m'
-__YELLOW='\e[0;93m'
-__BLUE='\e[0;94m'
-__PASS='\u2714' # ✔
-__FAIL='\u274c' # ✖
-# WARN='\u26A0' # ⚠
-# INFO='\u2757' # ℹ
+readonly __DESC="A template to be used for quick creation of bash scripts."
+readonly __VERSION="v1.0"
+readonly __SCRIPT_NAME=$(basename "${0}" .sh)
+readonly __LOCAL_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+readonly __NC='\e[0m'
+readonly __GRAY='\e[0;90m'
+readonly __RED='\e[0;91m'
+readonly __GREEN='\e[0;92m'
+readonly __YELLOW='\e[0;93m'
+readonly __BLUE='\e[0;94m'
+readonly __PASS='\u2714' # ✔
+readonly __FAIL='\u274c' # ✖
+# readonly WARN='\u26A0' # ⚠
+# readonly INFO='\u2757' # ℹ
 
 __VERBOSITY=3
-declare -A __LOG_LEVELS
-__LOG_LEVELS=(
+readonly __LOG_LEVELS=(
     [0]="[${__GREEN}${__PASS} ${__NC}]"
     [1]="[${__RED}${__FAIL} ${__NC}]"
     [2]="[${__YELLOW}WARN${__NC}]"
     [3]="[${__BLUE}INFO${__NC}]"
     [4]="[${__GRAY}DEBUG${__NC}]"
 )
+
+
 
 ######################################### FUNCTIONS ###############################################
 banner() { # Args: Title
@@ -41,14 +51,14 @@ banner() { # Args: Title
 log() { # Args: log_level[0-4], Message
     local _level=${1}
     shift
-    if [ ${__VERBOSITY} -ge ${_level} ]; then
+    if [[ "${__VERBOSITY}" -ge "${_level}" ]]; then
         echo -e "${__LOG_LEVELS[${_level}]} $@"
     fi
 }
 
 # https://gist.github.com/davejamesmiller/1965569
-ask() {
-    local _prompt _default _reply
+ask() { # Args: Message, [OPTIONAL] default answer
+    local _prompt _default _reply _message=${1}
 
     if [ "${2:-}" = "Y" ]; then
         _prompt="Y/n"
@@ -62,19 +72,15 @@ ask() {
     fi
 
     while true; do
-
         # Ask the question (not using "read -p" as it uses stderr not stdout)
-        echo -n "$1 [${_prompt}] "
-
+        echo -n "${_message} [${_prompt}] "
         # Read the answer (use /dev/tty in case stdin is redirected from somewhere else)
         read _reply </dev/tty
 
-        # Default?
         if [ -z "${_reply}" ]; then
-            _reply=${default}
+            _reply="${_default}"
         fi
 
-        # Check if the reply is valid
         case "${_reply}" in
             Y*|y*) return 0 ;;
             N*|n*) return 1 ;;
@@ -84,7 +90,7 @@ ask() {
 
 menu() {
     while true; do
-        cat<<EOF
+        cat<<MENU
 ==============================
         Program Menu
 ------------------------------
@@ -94,70 +100,92 @@ menu() {
   2) Option 2
   Q) Quit
 ------------------------------
-EOF
-        read -n1 -s
-        case "$REPLY" in
-            "1")  ask "What?" Y ;;
+MENU
+        local _reply
+        read -n1 -s _reply
+        case "${_reply}" in
+            "1")  ask "Test Menu Optins?" Y ;;
             "2")  echo 2 ;;
-            "Q"|"q")  exit 1  ;;
+            "Q"|"q")  exit 0  ;;
             * )  echo "invalid option" ;;
         esac
 done
 }
 
-usage() {
-cat <<EOF
+help() {
+    local _desc="Show this help screen"
+    cat <<HELP
 NAME
-    template - template bash script
+    ${__SCRIPT_NAME} - template bash script
 
 USAGE
     template --verbose 4
 
 DESCRIPTION
-    This is a template for quick creation of bash scripts.
+    ${__DESC}
 
     -h, --help
-            show this help screen
+            ${_desc}
     
-    -v, --verbose
-            specify the verbosity of the script. [0-4]
+    -V, --verbose
+            Specify the verbosity of the script. [0-4]
                 0 - success
                 1 - error
                 2 - warn
                 3 - info
                 4 - debug
 
-EOF
+    -v, --version
+            Shows the current version of the program
+
+HELP
+}
+
+usage() {
+    local _desc="Displays an inline message invalid args are given"
+    echo "Try '${__SCRIPT_NAME} -h' for more information."
+}
+
+version() {
+    local _desc="Shows the current version of the program"
+    echo "${__SCRIPT_NAME} ${__VERSION}"
 }
 ######################################### START ###############################################
 main () {
-    for arg in "$@"; do
+    for __ARG in "${@}"; do
         shift
-        case "${arg}" in
-            "--help") set -- "$@" "-h" ;;
-            "--verbose") set -- "$@" "-v" ;;
-            *) set -- "$@" "${arg}"
+        case "${__ARG}" in
+            "--help") set -- "${@}" "-h" ;;
+            "--verbose") set -- "${@}" "-V" ;;
+            "--version") set -- "${@}" "-v" ;;
+            *) set -- "$@" "${__ARG}"
         esac
     done
 
-    if [ $# -eq 0 ]; then
+    local _longarg
+    if [[ "$#" = "0" ]]; then
         menu
     else
-        while getopts "v:h" OPTION; do
-            case ${OPTION} in
+        while getopts "hV:v-:" __OPTION; do
+            case ${__OPTION} in
                 h)
-                    usage
-                    exit 1
+                    help
+                    exit 0
+                    ;;
+                V)
+                    __VERBOSITY="${OPTARG}"
                     ;;
                 v)
-                    VERBOSITY=${OPTARG}
+                    version
+                    exit 0
                     ;;
                 *)
                     usage
-                    exit 1
+                    exit 0
                     ;;
             esac
         done
+        readonly __VERBOSITY
     fi
 
     # Example of how to log output
@@ -205,4 +233,16 @@ main () {
     ask "Do you want to do such-and-such?" || echo "no"
 }
 
-main "$@"
+finish() {
+    local _result=$?
+    # Your cleanup code
+
+    echo # Print a Newline
+    log 4 "Cleaning up..."
+    log 4 "Exited with code ${_result}"
+
+    exit "${_result}"
+}
+trap finish EXIT ERR
+
+main "${@}"
