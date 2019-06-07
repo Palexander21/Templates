@@ -13,7 +13,7 @@ import sys
 import subprocess
 import argparse
 import signal
-####################################### Globals ##########################################
+######################################## Globals #################################################
 __version__ = "v1.0"
 SCRIPT_NAME = sys.argv[0].strip("./")
 LOCAL_DIR = os.getcwd()
@@ -35,8 +35,8 @@ LOG_LEVELS = [
     "[{} {} {}]".format(BLUE, "INFO", NC),
     "[{} {} {}]".format(GRAY, "DEBUG", NC),
 ]
+###################################### Functions ################################################
 
-####################################### Functions ########################################
 def log(level, msg):
     if level <= VERBOSITY:
         print("{} {}".format(LOG_LEVELS[level], msg))
@@ -136,7 +136,7 @@ def signal_handler(sig, frame):
     log(2, "Caught Ctrl-C")
     cleanup(sig)
 
-####################################### Main ##########################################
+######################################## Main ####################################################
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
