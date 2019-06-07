@@ -232,7 +232,7 @@ main () {
     ask "Do you want to do such-and-such?" || echo "no"
 }
 
-finish() {
+cleanup() {
     local _result=$?
     # Your cleanup code
 
@@ -242,6 +242,6 @@ finish() {
 
     exit "${_result}"
 }
-trap finish EXIT ERR
+trap cleanup EXIT ERR
 
 main "${@}"
