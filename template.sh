@@ -104,10 +104,10 @@ MENU
         local _reply
         read -n1 -s _reply
         case "${_reply}" in
-            "1")  ask "Test Menu Optins?" Y ;;
+            "1")  ask "Test Menu Options?" Y ;;
             "2")  echo 2 ;;
             "Q"|"q")  exit 0  ;;
-            * )  echo "invalid option" ;;
+            * )  echo "Invalid option..." ;;
         esac
 done
 }

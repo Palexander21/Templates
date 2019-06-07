@@ -1,4 +1,11 @@
 #! /usr/bin/env python
+
+##################################################################################################
+# Author: Paxton Alexander (With the help of Github and StackOverflow)
+# Version: 1.0
+# Description: A template to be used for quick creation of python scripts.
+##################################################################################################
+
 from __future__ import print_function
 
 import os
