@@ -88,7 +88,7 @@ def run(command, ret=True):      # set ret to false if you want output as it's a
     p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     if ret:
-        return p
+        return p.stdout.read()
     else:
         print("------------ Result ------------------")
         while True:
@@ -159,6 +159,8 @@ if __name__ == "__main__":
         log(1, SCRIPT_NAME)
         log(0, LOCAL_DIR)
         run("ls", False)
+        ret = run("ls")
+        print(ret)
         ask("Do this?") and log(0, "You did this!")
         ask("Do that?", default='N') or log(1, "You didn't do it...")
         ask("Test this?", default=None) and log(0, "You did it!")
